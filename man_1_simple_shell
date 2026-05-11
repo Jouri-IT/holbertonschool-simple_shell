@@ -1,0 +1,9 @@
+.TH SIMPLE_SHELL 1 "MAY 2026" "Holberton" "Simple Shell Manual"
+.SH NAME
+hsh \- Simple Shell
+.SH SYNOPSIS
+.B ./hsh
+.SH DESCRIPTION
+hsh is a command line interpreter that executes commands from standard input or files.
+.SH AUTHORS
+Aseel Alzhrani & Jouri Jouri

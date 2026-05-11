@@ -1,18 +1,14 @@
 #include "main.h"
 
 /**
- * execute_command - Executes a command using fork and execve
- * @command: The command to execute (full path expected)
- * @prog_name: Name of the shell program for error messages
+ * execute_command - Executes a command with arguments
+ * @args: Array of command and its arguments
+ * @prog_name: Name of the shell for error messages
  */
-void execute_command(char *command, char *prog_name)
+void execute_command(char **args, char *prog_name)
 {
 	pid_t child_pid;
 	int status;
-	char *args[2];
-
-	args[0] = command;
-	args[1] = NULL;
 
 	child_pid = fork();
 	if (child_pid == -1)
@@ -23,9 +19,9 @@ void execute_command(char *command, char *prog_name)
 
 	if (child_pid == 0)
 	{
-		if (execve(command, args, environ) == -1)
+		if (execve(args[0], args, environ) == -1)
 		{
-			fprintf(stderr, "%s: 1: %s: not found\n", prog_name, command);
+			fprintf(stderr, "%s: 1: %s: not found\n", prog_name, args[0]);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -36,7 +32,7 @@ void execute_command(char *command, char *prog_name)
 }
 
 /**
- * main - Basic UNIX command line interpreter
+ * main - Simple UNIX command line interpreter
  * @ac: Argument count
  * @av: Argument vector
  *
@@ -47,6 +43,9 @@ int main(int ac, char **av)
 	char *line = NULL;
 	size_t len = 0;
 	ssize_t nread;
+	char *args[1024];
+	char *token;
+	int i;
 	(void)ac;
 
 	while (1)
@@ -62,15 +61,22 @@ int main(int ac, char **av)
 			break;
 		}
 
-		if (line[nread - 1] == '\n')
-			line[nread - 1] = '\0';
-
-		if (strlen(line) > 0)
+		i = 0;
+		token = strtok(line, " \n\t\r");
+		while (token != NULL)
 		{
-			execute_command(line, av[0]);
+			args[i++] = token;
+			token = strtok(NULL, " \n\t\r");
+		}
+		args[i] = NULL;
+
+		if (args[0] != NULL)
+		{
+			if (strcmp(args[0], "exit") == 0)
+				break;
+			execute_command(args, av[0]);
 		}
 	}
-
 	free(line);
 	return (0);
 }

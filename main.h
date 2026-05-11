@@ -8,10 +8,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-/* Access to the system environment */
 extern char **environ;
 
-/* Function prototypes */
-void execute_command(char *command, char *prog_name);
+void execute_command(char **args, char *prog_name);
 
 #endif

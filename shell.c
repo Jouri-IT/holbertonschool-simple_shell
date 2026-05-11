@@ -20,19 +20,21 @@ void free_aliases(void)
 }
 
 /**
- * print_aliases - Prints all aliases or specific ones
- * @name: Name of specific alias (NULL for all)
+ * find_alias - Finds an alias in the list
+ * @name: Name of the alias
+ * Return: Pointer to the alias node or NULL
  */
-void print_aliases(char *name)
+alias_t *find_alias(char *name)
 {
 	alias_t *temp = aliases;
 
 	while (temp)
 	{
-		if (name == NULL || strcmp(temp->name, name) == 0)
-			printf("%s='%s'\n", temp->name, temp->value);
+		if (strcmp(temp->name, name) == 0)
+			return (temp);
 		temp = temp->next;
 	}
+	return (NULL);
 }
 
 /**
@@ -42,17 +44,13 @@ void print_aliases(char *name)
  */
 void set_alias(char *name, char *value)
 {
-	alias_t *temp = aliases;
+	alias_t *temp = find_alias(name);
 
-	while (temp)
+	if (temp)
 	{
-		if (strcmp(temp->name, name) == 0)
-		{
-			free(temp->value);
-			temp->value = strdup(value);
-			return;
-		}
-		temp = temp->next;
+		free(temp->value);
+		temp->value = strdup(value);
+		return;
 	}
 	temp = malloc(sizeof(alias_t));
 	if (temp == NULL)
@@ -71,10 +69,16 @@ void handle_alias(char **args)
 {
 	int i;
 	char *equal;
+	alias_t *temp;
 
 	if (args[1] == NULL)
 	{
-		print_aliases(NULL);
+		temp = aliases;
+		while (temp)
+		{
+			printf("%s='%s'\n", temp->name, temp->value);
+			temp = temp->next;
+		}
 		return;
 	}
 	for (i = 1; args[i]; i++)
@@ -86,7 +90,11 @@ void handle_alias(char **args)
 			set_alias(args[i], equal + 1);
 		}
 		else
-			print_aliases(args[i]);
+		{
+			temp = find_alias(args[i]);
+			if (temp)
+				printf("%s='%s'\n", temp->name, temp->value);
+		}
 	}
 }
 
@@ -122,7 +130,7 @@ int execute_command(char **args, char *prog_name)
 }
 
 /**
- * run_cmd - Parses and runs a single command
+ * run_cmd - Parses and runs a single command including alias expansion
  * @cmd_str: Command string
  * @prog_name: Program name
  * Return: exit status
@@ -130,7 +138,8 @@ int execute_command(char **args, char *prog_name)
 int run_cmd(char *cmd_str, char *prog_name)
 {
 	char *args[1024], *token;
-	int i = 0;
+	int i = 0, loop = 0;
+	alias_t *temp;
 
 	token = strtok(cmd_str, " \n\t\r");
 	while (token)
@@ -141,9 +150,21 @@ int run_cmd(char *cmd_str, char *prog_name)
 	args[i] = NULL;
 	if (!args[0])
 		return (0);
+
+	/* Expansion: Replace alias with value, handle nested aliases */
+	while (loop < 10) /* Prevent infinite loops */
+	{
+		temp = find_alias(args[0]);
+		if (temp)
+			args[0] = temp->value;
+		else
+			break;
+		loop++;
+	}
+
 	if (strcmp(args[0], "exit") == 0)
 	{
-		free_aliases(); /* Clean up memory before exit */
+		free_aliases();
 		exit(0);
 	}
 	if (strcmp(args[0], "alias") == 0)
@@ -155,7 +176,7 @@ int run_cmd(char *cmd_str, char *prog_name)
 }
 
 /**
- * main - Shell with support for ; && || and alias
+ * main - Shell with support for ; && || and alias expansion
  * @ac: count, @av: vector
  * Return: last status
  */
@@ -192,7 +213,7 @@ int main(int ac, char **av)
 			cmd = strtok(NULL, ";\n");
 		}
 	}
-	free_aliases(); /* Clean up memory at EOF */
+	free_aliases();
 	free(line);
 	return (last_s);
 }

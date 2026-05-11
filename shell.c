@@ -3,24 +3,6 @@
 alias_t *aliases = NULL;
 
 /**
- * handle_comments - Scans the line for '#' and terminates it
- * @line: The input line
- */
-void handle_comments(char *line)
-{
-	int i;
-
-	for (i = 0; line[i]; i++)
-	{
-		if (line[i] == '#' && (i == 0 || line[i - 1] == ' '))
-		{
-			line[i] = '\0';
-			break;
-		}
-	}
-}
-
-/**
  * free_aliases - Frees the alias linked list
  */
 void free_aliases(void)
@@ -39,6 +21,7 @@ void free_aliases(void)
 
 /**
  * handle_alias - Handles the alias builtin command
+ * @args: Arguments array
  */
 void handle_alias(char **args)
 {
@@ -86,7 +69,41 @@ void handle_alias(char **args)
 }
 
 /**
+ * handle_help - Displays help information
+ * @args: Arguments
+ */
+void handle_help(char **args)
+{
+	if (!args[1])
+		printf("Built-ins: help, cd, exit, alias\n");
+	else if (strcmp(args[1], "exit") == 0)
+		printf("exit [STATUS]: Exits the shell\n");
+	else if (strcmp(args[1], "alias") == 0)
+		printf("alias [NAME='VALUE']: Defines aliases\n");
+}
+
+/**
+ * handle_comments - Terminates line at '#'
+ * @line: Input line
+ */
+void handle_comments(char *line)
+{
+	int i;
+
+	for (i = 0; line[i]; i++)
+	{
+		if (line[i] == '#' && (i == 0 || line[i - 1] == ' '))
+		{
+			line[i] = '\0';
+			break;
+		}
+	}
+}
+
+/**
  * _getenv - Custom getenv
+ * @name: Var name
+ * Return: Var value
  */
 char *_getenv(char *name)
 {
@@ -102,7 +119,9 @@ char *_getenv(char *name)
 }
 
 /**
- * find_path - Finds command in PATH
+ * find_path - Finds cmd in PATH
+ * @cmd: command
+ * Return: path
  */
 char *find_path(char *cmd)
 {
@@ -130,40 +149,14 @@ char *find_path(char *cmd)
 }
 
 /**
- * handle_variables - Handles $?, $$ and environment variables
- */
-void handle_variables(char **args, int last_s)
-{
-	int i;
-	char *val, p[20], s[20], *new_v;
-
-	sprintf(p, "%d", getpid());
-	sprintf(s, "%d", last_s);
-	for (i = 0; args[i]; i++)
-	{
-		if (args[i][0] == '$' && args[i][1])
-		{
-			if (strcmp(args[i], "$?") == 0)
-				new_v = strdup(s);
-			else if (strcmp(args[i], "$$") == 0)
-				new_v = strdup(p);
-			else
-			{
-				val = _getenv(args[i] + 1);
-				new_v = strdup(val ? val : "");
-			}
-			args[i] = new_v;
-		}
-	}
-}
-
-/**
- * run_cmd - Executes a single command
+ * run_cmd - Parses and runs a command
+ * @cs: cmd string, @pn: prog name, @ls: last status
+ * Return: status
  */
 int run_cmd(char *cs, char *pn, int ls)
 {
-	char *args[1024], *tk, *cp;
-	int i = 0, lp = 0, st_val = 0;
+	char *args[1024], *tk, *cp, p[20], s[20], *nv;
+	int i = 0, lp = 0, st_v = 0;
 	alias_t *at;
 	pid_t pid;
 
@@ -171,26 +164,30 @@ int run_cmd(char *cs, char *pn, int ls)
 	while (tk) { args[i++] = tk; tk = strtok(NULL, " \n\t\r"); }
 	args[i] = NULL;
 	if (!args[0]) return (ls);
-	while (lp++ < 10)
-	{
-		for (at = aliases; at && strcmp(at->name, args[0]); at = at->next)
-			;
+	while (lp++ < 10) {
+		for (at = aliases; at && strcmp(at->name, args[0]); at = at->next) ;
 		if (at) args[0] = at->value; else break;
 	}
-	handle_variables(args, ls);
+	sprintf(p, "%d", getpid()); sprintf(s, "%d", ls);
+	for (i = 0; args[i]; i++) {
+		if (args[i][0] == '$' && args[i][1]) {
+			if (!strcmp(args[i], "$?")) nv = strdup(s);
+			else if (!strcmp(args[i], "$$")) nv = strdup(p);
+			else { tk = _getenv(args[i] + 1); nv = strdup(tk ? tk : ""); }
+			args[i] = nv;
+		}
+	}
 	if (!strcmp(args[0], "exit")) { free_aliases(); exit(ls); }
 	if (!strcmp(args[0], "alias")) { handle_alias(args); return (0); }
-	cp = find_path(args[0]);
-	pid = fork();
-	if (pid == 0)
-	{
-		if (execve(cp, args, environ) == -1)
-		{
+	if (!strcmp(args[0], "help")) { handle_help(args); return (0); }
+	cp = find_path(args[0]); pid = fork();
+	if (pid == 0) {
+		if (execve(cp, args, environ) == -1) {
 			fprintf(stderr, "%s: 1: %s: not found\n", pn, args[0]);
 			free(cp); exit(127);
 		}
-	} else { waitpid(pid, &st_val, 0); free(cp); }
-	return (WIFEXITED(st_val) ? WEXITSTATUS(st_val) : ls);
+	} else { waitpid(pid, &st_v, 0); free(cp); }
+	return (WIFEXITED(st_v) ? WEXITSTATUS(st_v) : ls);
 }
 
 /**
@@ -205,7 +202,7 @@ int main(int ac, char **av)
 
 	while (getline(&line, &len, stdin) != -1)
 	{
-		handle_comments(line); /* تم إضافة الدالة هنا */
+		handle_comments(line);
 		i = 0;
 		tk = strtok(line, ";\n");
 		while (tk) { cmds[i++] = tk; tk = strtok(NULL, ";\n"); }

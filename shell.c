@@ -3,6 +3,24 @@
 alias_t *aliases = NULL;
 
 /**
+ * handle_comments - Scans the line for '#' and terminates it
+ * @line: The input line
+ */
+void handle_comments(char *line)
+{
+	int i;
+
+	for (i = 0; line[i]; i++)
+	{
+		if (line[i] == '#' && (i == 0 || line[i - 1] == ' '))
+		{
+			line[i] = '\0';
+			break;
+		}
+	}
+}
+
+/**
  * free_aliases - Frees the alias linked list
  */
 void free_aliases(void)
@@ -68,7 +86,7 @@ void handle_alias(char **args)
 }
 
 /**
- * _getenv - Custom getenv (forbidden function replacement)
+ * _getenv - Custom getenv
  */
 char *_getenv(char *name)
 {
@@ -187,6 +205,7 @@ int main(int ac, char **av)
 
 	while (getline(&line, &len, stdin) != -1)
 	{
+		handle_comments(line); /* تم إضافة الدالة هنا */
 		i = 0;
 		tk = strtok(line, ";\n");
 		while (tk) { cmds[i++] = tk; tk = strtok(NULL, ";\n"); }

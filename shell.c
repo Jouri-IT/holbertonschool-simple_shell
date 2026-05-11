@@ -3,6 +3,23 @@
 alias_t *aliases = NULL;
 
 /**
+ * free_aliases - Frees the memory used by the alias linked list
+ */
+void free_aliases(void)
+{
+	alias_t *temp;
+
+	while (aliases)
+	{
+		temp = aliases;
+		aliases = aliases->next;
+		free(temp->name);
+		free(temp->value);
+		free(temp);
+	}
+}
+
+/**
  * print_aliases - Prints all aliases or specific ones
  * @name: Name of specific alias (NULL for all)
  */
@@ -105,7 +122,7 @@ int execute_command(char **args, char *prog_name)
 }
 
 /**
- * run_cmd - Parses and runs a single command including builtins
+ * run_cmd - Parses and runs a single command
  * @cmd_str: Command string
  * @prog_name: Program name
  * Return: exit status
@@ -125,7 +142,10 @@ int run_cmd(char *cmd_str, char *prog_name)
 	if (!args[0])
 		return (0);
 	if (strcmp(args[0], "exit") == 0)
+	{
+		free_aliases(); /* Clean up memory before exit */
 		exit(0);
+	}
 	if (strcmp(args[0], "alias") == 0)
 	{
 		handle_alias(args);
@@ -172,6 +192,7 @@ int main(int ac, char **av)
 			cmd = strtok(NULL, ";\n");
 		}
 	}
+	free_aliases(); /* Clean up memory at EOF */
 	free(line);
 	return (last_s);
 }

@@ -7,10 +7,11 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/stat.h>
+
+/* Access to the system environment */
+extern char **environ;
 
 /* Function prototypes */
-void display_prompt(void);
-void handle_command(char *command);
+void execute_command(char *command, char *prog_name);
 
 #endif

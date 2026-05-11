@@ -10,7 +10,21 @@
 
 extern char **environ;
 
-/* Updated prototype to return int (Exit Status) */
+/**
+ * struct alias_s - Linked list for aliases
+ * @name: Alias name
+ * @value: Alias value
+ * @next: Next node
+ */
+typedef struct alias_s
+{
+	char *name;
+	char *value;
+	struct alias_s *next;
+} alias_t;
+
+/* Function prototypes */
 int execute_command(char **args, char *prog_name);
+void handle_alias(char **args);
 
 #endif

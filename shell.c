@@ -1,5 +1,78 @@
 #include "main.h"
 
+alias_t *aliases = NULL;
+
+/**
+ * print_aliases - Prints all aliases or specific ones
+ * @name: Name of specific alias (NULL for all)
+ */
+void print_aliases(char *name)
+{
+	alias_t *temp = aliases;
+
+	while (temp)
+	{
+		if (name == NULL || strcmp(temp->name, name) == 0)
+			printf("%s='%s'\n", temp->name, temp->value);
+		temp = temp->next;
+	}
+}
+
+/**
+ * set_alias - Defines or updates an alias
+ * @name: Alias name
+ * @value: Alias value
+ */
+void set_alias(char *name, char *value)
+{
+	alias_t *temp = aliases;
+
+	while (temp)
+	{
+		if (strcmp(temp->name, name) == 0)
+		{
+			free(temp->value);
+			temp->value = strdup(value);
+			return;
+		}
+		temp = temp->next;
+	}
+	temp = malloc(sizeof(alias_t));
+	if (temp == NULL)
+		return;
+	temp->name = strdup(name);
+	temp->value = strdup(value);
+	temp->next = aliases;
+	aliases = temp;
+}
+
+/**
+ * handle_alias - Main handler for the alias builtin
+ * @args: Command arguments
+ */
+void handle_alias(char **args)
+{
+	int i;
+	char *equal;
+
+	if (args[1] == NULL)
+	{
+		print_aliases(NULL);
+		return;
+	}
+	for (i = 1; args[i]; i++)
+	{
+		equal = strchr(args[i], '=');
+		if (equal)
+		{
+			*equal = '\0';
+			set_alias(args[i], equal + 1);
+		}
+		else
+			print_aliases(args[i]);
+	}
+}
+
 /**
  * execute_command - Executes a command and returns exit status
  * @args: Arguments array
@@ -32,7 +105,7 @@ int execute_command(char **args, char *prog_name)
 }
 
 /**
- * run_cmd - Parses and runs a single command
+ * run_cmd - Parses and runs a single command including builtins
  * @cmd_str: Command string
  * @prog_name: Program name
  * Return: exit status
@@ -53,11 +126,16 @@ int run_cmd(char *cmd_str, char *prog_name)
 		return (0);
 	if (strcmp(args[0], "exit") == 0)
 		exit(0);
+	if (strcmp(args[0], "alias") == 0)
+	{
+		handle_alias(args);
+		return (0);
+	}
 	return (execute_command(args, prog_name));
 }
 
 /**
- * main - Simple shell with full logic support (&&, ||, ;)
+ * main - Shell with support for ; && || and alias
  * @ac: count, @av: vector
  * Return: last status
  */

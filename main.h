@@ -10,6 +10,7 @@
 
 extern char **environ;
 
-void execute_command(char **args, char *prog_name);
+/* Updated prototype to return int (Exit Status) */
+int execute_command(char **args, char *prog_name);
 
 #endif

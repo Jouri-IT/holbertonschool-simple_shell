@@ -1,41 +1,47 @@
 #include "main.h"
 
 /**
- * execute_command - Forks a process to execute a command with arguments
- * @args: Array of strings containing the command and its arguments
- * @prog_name: Name of the shell program for error messages
+ * execute_command - Executes a command and returns its exit status
+ * @args: Array of command and arguments
+ * @prog_name: Name of the shell
+ * Return: Exit status of the command
  */
-void execute_command(char **args, char *prog_name)
+int execute_command(char **args, char *prog_name)
 {
 	pid_t child_pid;
 	int status;
+	int exit_s = 0;
 
 	child_pid = fork();
 	if (child_pid == -1)
 	{
 		perror("Error");
-		return;
+		return (1);
 	}
 	if (child_pid == 0)
 	{
 		if (execve(args[0], args, environ) == -1)
 		{
 			fprintf(stderr, "%s: 1: %s: not found\n", prog_name, args[0]);
-			exit(EXIT_FAILURE);
+			exit(127);
 		}
 	}
 	else
 	{
-		wait(&status);
+		waitpid(child_pid, &status, 0);
+		if (WIFEXITED(status))
+			exit_s = WEXITSTATUS(status);
 	}
+	return (exit_s);
 }
 
 /**
- * run_single_command - Splits a single command into args and executes it
- * @cmd_str: The command string (potentially with spaces)
+ * run_single_command - Splits and executes one command
+ * @cmd_str: The command string
  * @prog_name: Name of the shell
+ * Return: Exit status of the command
  */
-void run_single_command(char *cmd_str, char *prog_name)
+int run_single_command(char *cmd_str, char *prog_name)
 {
 	char *args[1024];
 	char *token;
@@ -52,17 +58,20 @@ void run_single_command(char *cmd_str, char *prog_name)
 	if (args[0] != NULL)
 	{
 		if (strcmp(args[0], "exit") == 0)
+		{
+			/* You might need to handle exit with arguments here later */
 			exit(0);
-		execute_command(args, prog_name);
+		}
+		return (execute_command(args, prog_name));
 	}
+	return (0);
 }
 
 /**
- * main - Simple UNIX command line interpreter with ; handling
+ * main - Simple UNIX command line interpreter with exit status support
  * @ac: Argument count
  * @av: Argument vector
- *
- * Return: Always 0
+ * Return: Last command exit status
  */
 int main(int ac, char **av)
 {
@@ -71,7 +80,7 @@ int main(int ac, char **av)
 	ssize_t nread;
 	char *commands[1024];
 	char *cmd_token;
-	int j;
+	int j, last_status = 0;
 	(void)ac;
 
 	while (1)
@@ -87,7 +96,6 @@ int main(int ac, char **av)
 			break;
 		}
 
-		/* First split: by semicolon ; */
 		j = 0;
 		cmd_token = strtok(line, ";\n");
 		while (cmd_token != NULL)
@@ -97,12 +105,11 @@ int main(int ac, char **av)
 		}
 		commands[j] = NULL;
 
-		/* Execute each command sequentially */
 		for (j = 0; commands[j] != NULL; j++)
 		{
-			run_single_command(commands[j], av[0]);
+			last_status = run_single_command(commands[j], av[0]);
 		}
 	}
 	free(line);
-	return (0);
+	return (last_status);
 }

@@ -20,7 +20,6 @@ void free_aliases(void)
 
 /**
  * handle_alias - Main handler for the alias builtin
- * @args: Command arguments
  */
 void handle_alias(char **args)
 {
@@ -67,19 +66,17 @@ void handle_alias(char **args)
 }
 
 /**
- * find_path - Searches for a command in the PATH
- * @cmd: The command to find
- * Return: Full path or dup of cmd
+ * find_path - Searches for a command in the PATH using a safe tokenizer
  */
 char *find_path(char *cmd)
 {
-	char *path = getenv("PATH"), *path_cp, *tok, *fp;
+	char *path = getenv("PATH"), *path_cp, *tok, *fp, *saveptr;
 	struct stat st;
 
 	if (!path || strchr(cmd, '/') || !strlen(path))
 		return (strdup(cmd));
 	path_cp = strdup(path);
-	tok = strtok(path_cp, ":");
+	tok = strtok_r(path_cp, ":", &saveptr);
 	while (tok)
 	{
 		fp = malloc(strlen(tok) + strlen(cmd) + 2);
@@ -90,7 +87,7 @@ char *find_path(char *cmd)
 			return (fp);
 		}
 		free(fp);
-		tok = strtok(NULL, ":");
+		tok = strtok_r(NULL, ":", &saveptr);
 	}
 	free(path_cp);
 	return (strdup(cmd));
@@ -98,24 +95,21 @@ char *find_path(char *cmd)
 
 /**
  * run_cmd - Parses and runs a command
- * @cs: cmd string, @pn: prog name, @ls: last status
- * Return: status
  */
 int run_cmd(char *cs, char *pn, int ls)
 {
-	char *args[1024], *tk, *cp, *v, p[20], s[20];
+	char *args[1024], *tk, *cp, *v, p[20], s[20], *saveptr;
 	int i = 0, lp = 0, st_val = 0;
 	alias_t *at;
 	pid_t pid;
 
-	tk = strtok(cs, " \n\t\r");
-	while (tk) { args[i++] = tk; tk = strtok(NULL, " \n\t\r"); }
+	tk = strtok_r(cs, " \n\t\r", &saveptr);
+	while (tk) { args[i++] = tk; tk = strtok_r(NULL, " \n\t\r", &saveptr); }
 	args[i] = NULL;
 	if (!args[0]) return (ls);
 	while (lp++ < 10)
 	{
-		for (at = aliases; at && strcmp(at->name, args[0]); at = at->next)
-			;
+		for (at = aliases; at && strcmp(at->name, args[0]); at = at->next) ;
 		if (at) args[0] = at->value; else break;
 	}
 	sprintf(p, "%d", getpid()); sprintf(s, "%d", ls);
@@ -134,28 +128,23 @@ int run_cmd(char *cs, char *pn, int ls)
 			fprintf(stderr, "%s: 1: %s: not found\n", pn, args[0]);
 			free(cp); exit(127);
 		}
-	} else {
-		waitpid(pid, &st_val, 0);
-		free(cp);
-	}
+	} else { waitpid(pid, &st_val, 0); free(cp); }
 	return (WIFEXITED(st_val) ? WEXITSTATUS(st_val) : ls);
 }
 
 /**
- * main - Main shell loop
- * @ac: arg count, @av: arg vector
- * Return: status
+ * main - Main shell loop with safe tokenizing
  */
 int main(int ac, char **av)
 {
-	char *line = NULL, *cmd, *next;
+	char *line = NULL, *cmd, *next, *saveptr;
 	size_t len = 0;
 	int last_s = 0;
 	(void)ac;
 
 	while (getline(&line, &len, stdin) != -1)
 	{
-		cmd = strtok(line, ";\n");
+		cmd = strtok_r(line, ";\n", &saveptr);
 		while (cmd)
 		{
 			next = cmd;
@@ -169,7 +158,7 @@ int main(int ac, char **av)
 				if ((op == a && last_s != 0) || (op == o && last_s == 0)) break;
 				next = op + 2;
 			}
-			cmd = strtok(NULL, ";\n");
+			cmd = strtok_r(NULL, ";\n", &saveptr);
 		}
 	}
 	free_aliases(); free(line);

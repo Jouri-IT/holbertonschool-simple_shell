@@ -8,6 +8,7 @@ alias_t *aliases = NULL;
 void free_aliases(void)
 {
 	alias_t *temp;
+
 	while (aliases)
 	{
 		temp = aliases;
@@ -20,6 +21,7 @@ void free_aliases(void)
 
 /**
  * handle_alias - Main handler for the alias builtin
+ * @args: Command arguments
  */
 void handle_alias(char **args)
 {
@@ -50,7 +52,8 @@ void handle_alias(char **args)
 				new_n->name = strdup(args[i]);
 				new_n->value = strdup(eq + 1);
 				new_n->next = NULL;
-				if (!aliases) aliases = new_n;
+				if (!aliases)
+					aliases = new_n;
 				else {
 					for (last = aliases; last->next; last = last->next)
 						;
@@ -66,17 +69,37 @@ void handle_alias(char **args)
 }
 
 /**
- * find_path - Searches for a command in the PATH using a safe tokenizer
+ * _getenv - Custom getenv using environ array
+ * @name: Name of the environment variable
+ * Return: Value of the variable or NULL
+ */
+char *_getenv(char *name)
+{
+	int i = 0, len = strlen(name);
+
+	while (environ[i])
+	{
+		if (strncmp(environ[i], name, len) == 0 && environ[i][len] == '=')
+			return (environ[i] + len + 1);
+		i++;
+	}
+	return (NULL);
+}
+
+/**
+ * find_path - Searches for a command in the PATH manually
+ * @cmd: The command to find
+ * Return: Full path or dup of cmd
  */
 char *find_path(char *cmd)
 {
-	char *path = getenv("PATH"), *path_cp, *tok, *fp, *saveptr;
+	char *path = _getenv("PATH"), *path_cp, *tok, *fp;
 	struct stat st;
 
 	if (!path || strchr(cmd, '/') || !strlen(path))
 		return (strdup(cmd));
 	path_cp = strdup(path);
-	tok = strtok_r(path_cp, ":", &saveptr);
+	tok = strtok(path_cp, ":");
 	while (tok)
 	{
 		fp = malloc(strlen(tok) + strlen(cmd) + 2);
@@ -87,44 +110,72 @@ char *find_path(char *cmd)
 			return (fp);
 		}
 		free(fp);
-		tok = strtok_r(NULL, ":", &saveptr);
+		tok = strtok(NULL, ":");
 	}
 	free(path_cp);
 	return (strdup(cmd));
 }
 
 /**
+ * handle_variables - Replaces variables without memory leaks
+ * @args: Arguments array
+ * @last_s: Last exit status
+ */
+void handle_variables(char **args, int last_s)
+{
+	int i;
+	char *val, p[20], s[20], *new_v;
+
+	sprintf(p, "%d", getpid());
+	sprintf(s, "%d", last_s);
+	for (i = 0; args[i]; i++)
+	{
+		if (args[i][0] == '$' && args[i][1])
+		{
+			if (strcmp(args[i], "$?") == 0)
+				new_v = strdup(s);
+			else if (strcmp(args[i], "$$") == 0)
+				new_v = strdup(p);
+			else
+			{
+				val = _getenv(args[i] + 1);
+				new_v = strdup(val ? val : "");
+			}
+			args[i] = new_v;
+		}
+	}
+}
+
+/**
  * run_cmd - Parses and runs a command
+ * @cs: command string, @pn: program name, @ls: last status
+ * Return: status
  */
 int run_cmd(char *cs, char *pn, int ls)
 {
-	char *args[1024], *tk, *cp, *v, p[20], s[20], *saveptr;
+	char *args[1024], *tk, *cp;
 	int i = 0, lp = 0, st_val = 0;
 	alias_t *at;
 	pid_t pid;
 
-	tk = strtok_r(cs, " \n\t\r", &saveptr);
-	while (tk) { args[i++] = tk; tk = strtok_r(NULL, " \n\t\r", &saveptr); }
+	tk = strtok(cs, " \n\t\r");
+	while (tk) { args[i++] = tk; tk = strtok(NULL, " \n\t\r"); }
 	args[i] = NULL;
 	if (!args[0]) return (ls);
 	while (lp++ < 10)
 	{
-		for (at = aliases; at && strcmp(at->name, args[0]); at = at->next) ;
+		for (at = aliases; at && strcmp(at->name, args[0]); at = at->next)
+			;
 		if (at) args[0] = at->value; else break;
 	}
-	sprintf(p, "%d", getpid()); sprintf(s, "%d", ls);
-	for (i = 0; args[i]; i++) {
-		if (args[i][0] == '$' && args[i][1]) {
-			if (!strcmp(args[i], "$?")) args[i] = strdup(s);
-			else if (!strcmp(args[i], "$$")) args[i] = strdup(p);
-			else { v = getenv(args[i] + 1); args[i] = strdup(v ? v : ""); }
-		}
-	}
+	handle_variables(args, ls);
 	if (!strcmp(args[0], "exit")) { free_aliases(); exit(ls); }
 	if (!strcmp(args[0], "alias")) { handle_alias(args); return (0); }
 	cp = find_path(args[0]); pid = fork();
-	if (pid == 0) {
-		if (execve(cp, args, environ) == -1) {
+	if (pid == 0)
+	{
+		if (execve(cp, args, environ) == -1)
+		{
 			fprintf(stderr, "%s: 1: %s: not found\n", pn, args[0]);
 			free(cp); exit(127);
 		}
@@ -133,21 +184,27 @@ int run_cmd(char *cs, char *pn, int ls)
 }
 
 /**
- * main - Main shell loop with safe tokenizing
+ * main - Main shell loop
+ * @ac: arg count, @av: arg vector
+ * Return: last status
  */
 int main(int ac, char **av)
 {
-	char *line = NULL, *cmd, *next, *saveptr;
+	char *line = NULL, *cmds[1024], *tk;
 	size_t len = 0;
-	int last_s = 0;
+	int i, j, last_s = 0;
 	(void)ac;
 
 	while (getline(&line, &len, stdin) != -1)
 	{
-		cmd = strtok_r(line, ";\n", &saveptr);
-		while (cmd)
+		i = 0;
+		tk = strtok(line, ";\n");
+		while (tk) { cmds[i++] = tk; tk = strtok(NULL, ";\n"); }
+		cmds[i] = NULL;
+
+		for (j = 0; cmds[j]; j++)
 		{
-			next = cmd;
+			char *next = cmds[j];
 			while (*next)
 			{
 				char *a = strstr(next, "&&"), *o = strstr(next, "||");
@@ -158,7 +215,6 @@ int main(int ac, char **av)
 				if ((op == a && last_s != 0) || (op == o && last_s == 0)) break;
 				next = op + 2;
 			}
-			cmd = strtok_r(NULL, ";\n", &saveptr);
 		}
 	}
 	free_aliases(); free(line);

@@ -3,7 +3,7 @@
 alias_t *aliases = NULL;
 
 /**
- * free_aliases - Frees the memory used by the alias linked list
+ * free_aliases - Frees the alias linked list
  */
 void free_aliases(void)
 {
@@ -20,8 +20,7 @@ void free_aliases(void)
 }
 
 /**
- * handle_alias - Main handler for the alias builtin
- * @args: Command arguments
+ * handle_alias - Handles the alias builtin command
  */
 void handle_alias(char **args)
 {
@@ -69,9 +68,7 @@ void handle_alias(char **args)
 }
 
 /**
- * _getenv - Custom getenv using environ array
- * @name: Name of the environment variable
- * Return: Value of the variable or NULL
+ * _getenv - Custom getenv (forbidden function replacement)
  */
 char *_getenv(char *name)
 {
@@ -87,9 +84,7 @@ char *_getenv(char *name)
 }
 
 /**
- * find_path - Searches for a command in the PATH manually
- * @cmd: The command to find
- * Return: Full path or dup of cmd
+ * find_path - Finds command in PATH
  */
 char *find_path(char *cmd)
 {
@@ -117,9 +112,7 @@ char *find_path(char *cmd)
 }
 
 /**
- * handle_variables - Replaces variables without memory leaks
- * @args: Arguments array
- * @last_s: Last exit status
+ * handle_variables - Handles $?, $$ and environment variables
  */
 void handle_variables(char **args, int last_s)
 {
@@ -147,9 +140,7 @@ void handle_variables(char **args, int last_s)
 }
 
 /**
- * run_cmd - Parses and runs a command
- * @cs: command string, @pn: program name, @ls: last status
- * Return: status
+ * run_cmd - Executes a single command
  */
 int run_cmd(char *cs, char *pn, int ls)
 {
@@ -171,7 +162,8 @@ int run_cmd(char *cs, char *pn, int ls)
 	handle_variables(args, ls);
 	if (!strcmp(args[0], "exit")) { free_aliases(); exit(ls); }
 	if (!strcmp(args[0], "alias")) { handle_alias(args); return (0); }
-	cp = find_path(args[0]); pid = fork();
+	cp = find_path(args[0]);
+	pid = fork();
 	if (pid == 0)
 	{
 		if (execve(cp, args, environ) == -1)
@@ -184,9 +176,7 @@ int run_cmd(char *cs, char *pn, int ls)
 }
 
 /**
- * main - Main shell loop
- * @ac: arg count, @av: arg vector
- * Return: last status
+ * main - Shell main loop
  */
 int main(int ac, char **av)
 {
@@ -201,7 +191,6 @@ int main(int ac, char **av)
 		tk = strtok(line, ";\n");
 		while (tk) { cmds[i++] = tk; tk = strtok(NULL, ";\n"); }
 		cmds[i] = NULL;
-
 		for (j = 0; cmds[j]; j++)
 		{
 			char *next = cmds[j];

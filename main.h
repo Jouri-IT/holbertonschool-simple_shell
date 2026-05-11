@@ -1,5 +1,6 @@
 #ifndef MAIN_H
 #define MAIN_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -10,10 +11,17 @@
 
 extern char **environ;
 
-typedef struct alias_s {
-    char *name;
-    char *value;
-    struct alias_s *next;
+/**
+ * struct alias_s - Linked list for aliases
+ * @name: Alias name
+ * @value: Alias value
+ * @next: Next node
+ */
+typedef struct alias_s
+{
+	char *name;
+	char *value;
+	struct alias_s *next;
 } alias_t;
 
 #endif

@@ -3,6 +3,40 @@
 alias_t *aliases = NULL;
 
 /**
+ * handle_variables - Replaces variables like $?, $$, and $ENV
+ * @args: Array of arguments
+ * @last_s: Exit status of the last command
+ */
+void handle_variables(char **args, int last_s)
+{
+	int i;
+	char *val;
+	char pid_s[20], status_s[20];
+
+	sprintf(pid_s, "%d", getpid());
+	sprintf(status_s, "%d", last_s);
+
+	for (i = 0; args[i]; i++)
+	{
+		if (args[i][0] == '$' && args[i][1] != '\0')
+		{
+			if (strcmp(args[i], "$?") == 0)
+				args[i] = strdup(status_s);
+			else if (strcmp(args[i], "$$") == 0)
+				args[i] = strdup(pid_s);
+			else
+			{
+				val = getenv(args[i] + 1);
+				if (val)
+					args[i] = strdup(val);
+				else
+					args[i] = strdup("");
+			}
+		}
+	}
+}
+
+/**
  * free_aliases - Frees the memory used by the alias linked list
  */
 void free_aliases(void)
@@ -60,9 +94,7 @@ void set_alias(char *name, char *value)
 	new_node->value = strdup(value);
 	new_node->next = NULL;
 	if (aliases == NULL)
-	{
 		aliases = new_node;
-	}
 	else
 	{
 		last = aliases;
@@ -141,12 +173,13 @@ int execute_command(char **args, char *prog_name)
 }
 
 /**
- * run_cmd - Parses and runs a single command including alias expansion
+ * run_cmd - Parses and runs a single command including expansions
  * @cmd_str: Command string
  * @prog_name: Program name
+ * @last_s: Reference to last exit status
  * Return: exit status
  */
-int run_cmd(char *cmd_str, char *prog_name)
+int run_cmd(char *cmd_str, char *prog_name, int last_s)
 {
 	char *args[1024], *token;
 	int i = 0, loop = 0;
@@ -160,7 +193,8 @@ int run_cmd(char *cmd_str, char *prog_name)
 	}
 	args[i] = NULL;
 	if (!args[0])
-		return (0);
+		return (last_s);
+
 	while (loop < 10)
 	{
 		temp = find_alias(args[0]);
@@ -170,10 +204,13 @@ int run_cmd(char *cmd_str, char *prog_name)
 			break;
 		loop++;
 	}
+
+	handle_variables(args, last_s);
+
 	if (strcmp(args[0], "exit") == 0)
 	{
 		free_aliases();
-		exit(0);
+		exit(last_s);
 	}
 	if (strcmp(args[0], "alias") == 0)
 	{
@@ -184,7 +221,7 @@ int run_cmd(char *cmd_str, char *prog_name)
 }
 
 /**
- * main - Shell with support for ; && || and alias expansion
+ * main - Shell with support for ;, &&, ||, alias and variables
  * @ac: count, @av: vector
  * Return: last status
  */
@@ -209,11 +246,11 @@ int main(int ac, char **av)
 
 				if (!op)
 				{
-					last_s = run_cmd(next_cmd, av[0]);
+					last_s = run_cmd(next_cmd, av[0], last_s);
 					break;
 				}
 				*op = '\0';
-				last_s = run_cmd(next_cmd, av[0]);
+				last_s = run_cmd(next_cmd, av[0], last_s);
 				if ((op == and && last_s != 0) || (op == or && last_s == 0))
 					break;
 				next_cmd = op + 2;

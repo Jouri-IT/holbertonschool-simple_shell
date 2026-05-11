@@ -1,8 +1,8 @@
 #include "main.h"
 
 /**
- * execute_command - Executes a command and returns status
- * @args: Command arguments
+ * execute_command - Executes a command and returns exit status
+ * @args: Arguments array
  * @prog_name: Program name
  * Return: Exit status
  */
@@ -32,10 +32,10 @@ int execute_command(char **args, char *prog_name)
 }
 
 /**
- * run_cmd - Parses and runs a single command string
- * @cmd_str: The string to parse
+ * run_cmd - Parses and runs a single command
+ * @cmd_str: Command string
  * @prog_name: Program name
- * Return: status
+ * Return: exit status
  */
 int run_cmd(char *cmd_str, char *prog_name)
 {
@@ -57,43 +57,39 @@ int run_cmd(char *cmd_str, char *prog_name)
 }
 
 /**
- * main - Shell with ; && || support (handles no spaces)
- * @ac: count, @av: vectors
- * Return: Last status
+ * main - Simple shell with full logic support (&&, ||, ;)
+ * @ac: count, @av: vector
+ * Return: last status
  */
 int main(int ac, char **av)
 {
-	char *line = NULL, *cmd, *ptr;
+	char *line = NULL, *cmd, *next_cmd;
 	size_t len = 0;
 	int last_s = 0;
 	(void)ac;
 
 	while (getline(&line, &len, stdin) != -1)
 	{
-		/* Handle semicolon first */
 		cmd = strtok(line, ";\n");
 		while (cmd)
 		{
-			/* Simple logical handling for && and || */
-			/* Note: This is a direct approach for the checker case */
-			ptr = strstr(cmd, "&&");
-			if (ptr)
+			next_cmd = cmd;
+			while (*next_cmd)
 			{
-				*ptr = '\0';
-				last_s = run_cmd(cmd, av[0]);
-				if (last_s == 0)
-					last_s = run_cmd(ptr + 2, av[0]);
-			}
-			else if ((ptr = strstr(cmd, "||")))
-			{
-				*ptr = '\0';
-				last_s = run_cmd(cmd, av[0]);
-				if (last_s != 0)
-					last_s = run_cmd(ptr + 2, av[0]);
-			}
-			else
-			{
-				last_s = run_cmd(cmd, av[0]);
+				char *and = strstr(next_cmd, "&&");
+				char *or = strstr(next_cmd, "||");
+				char *op = (and && (!or || and < or)) ? and : or;
+
+				if (!op)
+				{
+					last_s = run_cmd(next_cmd, av[0]);
+					break;
+				}
+				*op = '\0';
+				last_s = run_cmd(next_cmd, av[0]);
+				if ((op == and && last_s != 0) || (op == or && last_s == 0))
+					break;
+				next_cmd = op + 2;
 			}
 			cmd = strtok(NULL, ";\n");
 		}

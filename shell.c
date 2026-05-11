@@ -38,13 +38,14 @@ alias_t *find_alias(char *name)
 }
 
 /**
- * set_alias - Defines or updates an alias
+ * set_alias - Defines or updates an alias at the end of the list
  * @name: Alias name
  * @value: Alias value
  */
 void set_alias(char *name, char *value)
 {
 	alias_t *temp = find_alias(name);
+	alias_t *new_node, *last;
 
 	if (temp)
 	{
@@ -52,13 +53,23 @@ void set_alias(char *name, char *value)
 		temp->value = strdup(value);
 		return;
 	}
-	temp = malloc(sizeof(alias_t));
-	if (temp == NULL)
+	new_node = malloc(sizeof(alias_t));
+	if (new_node == NULL)
 		return;
-	temp->name = strdup(name);
-	temp->value = strdup(value);
-	temp->next = aliases;
-	aliases = temp;
+	new_node->name = strdup(name);
+	new_node->value = strdup(value);
+	new_node->next = NULL;
+	if (aliases == NULL)
+	{
+		aliases = new_node;
+	}
+	else
+	{
+		last = aliases;
+		while (last->next != NULL)
+			last = last->next;
+		last->next = new_node;
+	}
 }
 
 /**
@@ -150,9 +161,7 @@ int run_cmd(char *cmd_str, char *prog_name)
 	args[i] = NULL;
 	if (!args[0])
 		return (0);
-
-	/* Expansion: Replace alias with value, handle nested aliases */
-	while (loop < 10) /* Prevent infinite loops */
+	while (loop < 10)
 	{
 		temp = find_alias(args[0]);
 		if (temp)
@@ -161,7 +170,6 @@ int run_cmd(char *cmd_str, char *prog_name)
 			break;
 		loop++;
 	}
-
 	if (strcmp(args[0], "exit") == 0)
 	{
 		free_aliases();

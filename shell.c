@@ -1,23 +1,19 @@
 #include "main.h"
 
 /**
- * execute_command - Executes a command and returns its exit status
- * @args: Array of command and arguments
- * @prog_name: Name of the shell
- * Return: Exit status of the command
+ * execute_command - Executes a command and returns status
+ * @args: Command arguments
+ * @prog_name: Program name
+ * Return: Exit status
  */
 int execute_command(char **args, char *prog_name)
 {
 	pid_t child_pid;
-	int status;
-	int exit_s = 0;
+	int status, exit_s = 0;
 
 	child_pid = fork();
 	if (child_pid == -1)
-	{
-		perror("Error");
 		return (1);
-	}
 	if (child_pid == 0)
 	{
 		if (execve(args[0], args, environ) == -1)
@@ -36,80 +32,51 @@ int execute_command(char **args, char *prog_name)
 }
 
 /**
- * run_single_command - Splits and executes one command
- * @cmd_str: The command string
- * @prog_name: Name of the shell
- * Return: Exit status of the command
+ * run_cmd - Parses and runs a single command string
+ * @cmd_str: The string to parse
+ * @prog_name: Program name
+ * Return: status
  */
-int run_single_command(char *cmd_str, char *prog_name)
+int run_cmd(char *cmd_str, char *prog_name)
 {
-	char *args[1024];
-	char *token;
+	char *args[1024], *token;
 	int i = 0;
 
 	token = strtok(cmd_str, " \n\t\r");
-	while (token != NULL)
+	while (token)
 	{
 		args[i++] = token;
 		token = strtok(NULL, " \n\t\r");
 	}
 	args[i] = NULL;
-
-	if (args[0] != NULL)
-	{
-		if (strcmp(args[0], "exit") == 0)
-		{
-			/* You might need to handle exit with arguments here later */
-			exit(0);
-		}
-		return (execute_command(args, prog_name));
-	}
-	return (0);
+	if (!args[0])
+		return (0);
+	if (strcmp(args[0], "exit") == 0)
+		exit(0);
+	return (execute_command(args, prog_name));
 }
 
 /**
- * main - Simple UNIX command line interpreter with exit status support
- * @ac: Argument count
- * @av: Argument vector
- * Return: Last command exit status
+ * main - Shell with ; support
+ * @ac: count, @av: vectors
+ * Return: Last status
  */
 int main(int ac, char **av)
 {
-	char *line = NULL;
+	char *line = NULL, *cmd;
 	size_t len = 0;
-	ssize_t nread;
-	char *commands[1024];
-	char *cmd_token;
-	int j, last_status = 0;
+	int last_s = 0;
 	(void)ac;
 
-	while (1)
+	while (getline(&line, &len, stdin) != -1)
 	{
-		if (isatty(STDIN_FILENO))
-			write(STDOUT_FILENO, "($) ", 4);
-
-		nread = getline(&line, &len, stdin);
-		if (nread == -1)
+		cmd = strtok(line, ";\n");
+		while (cmd)
 		{
-			if (isatty(STDIN_FILENO))
-				write(STDOUT_FILENO, "\n", 1);
-			break;
-		}
-
-		j = 0;
-		cmd_token = strtok(line, ";\n");
-		while (cmd_token != NULL)
-		{
-			commands[j++] = cmd_token;
-			cmd_token = strtok(NULL, ";\n");
-		}
-		commands[j] = NULL;
-
-		for (j = 0; commands[j] != NULL; j++)
-		{
-			last_status = run_single_command(commands[j], av[0]);
+			last_s = run_cmd(cmd, av[0]);
+			cmd = strtok(NULL, ";\n");
 		}
 	}
 	free(line);
-	return (last_status);
+	return (last_s);
 }

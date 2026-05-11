@@ -1,9 +1,9 @@
 #include "main.h"
 
 /**
- * execute_command - Executes a command with arguments
- * @args: Array of command and its arguments
- * @prog_name: Name of the shell for error messages
+ * execute_command - Forks a process to execute a command with arguments
+ * @args: Array of strings containing the command and its arguments
+ * @prog_name: Name of the shell program for error messages
  */
 void execute_command(char **args, char *prog_name)
 {
@@ -32,11 +32,11 @@ void execute_command(char **args, char *prog_name)
 }
 
 /**
- * main - Simple UNIX command line interpreter
- * @ac: Argument count
- * @av: Argument vector
+ * main - Simple UNIX command line interpreter with arguments support
+ * @ac: Argument count (unused)
+ * @av: Argument vector (used for program name)
  *
- * Return: Always 0
+ * Return: Always 0 (Success)
  */
 int main(int ac, char **av)
 {

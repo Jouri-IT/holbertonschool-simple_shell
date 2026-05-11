@@ -1,9 +1,9 @@
 #include "main.h"
 
 /**
- * execute_command - Forks a process to execute a command
- * @command: The command to execute (full path)
- * @prog_name: Name of the shell program for errors
+ * execute_command - Executes a command using fork and execve
+ * @command: The command to execute (full path expected)
+ * @prog_name: Name of the shell program for error messages
  */
 void execute_command(char *command, char *prog_name)
 {
@@ -20,7 +20,8 @@ void execute_command(char *command, char *prog_name)
 		perror("Error");
 		return;
 	}
-	if (child_pid == 0) /* Child process */
+
+	if (child_pid == 0)
 	{
 		if (execve(command, args, environ) == -1)
 		{
@@ -28,16 +29,16 @@ void execute_command(char *command, char *prog_name)
 			exit(EXIT_FAILURE);
 		}
 	}
-	else /* Parent process */
+	else
 	{
 		wait(&status);
 	}
 }
 
 /**
- * main - Entry point for the simple shell 0.1
- * @ac: Argument count (unused)
- * @av: Argument vector (used for error messages)
+ * main - Basic UNIX command line interpreter
+ * @ac: Argument count
+ * @av: Argument vector
  *
  * Return: Always 0
  */
@@ -46,34 +47,30 @@ int main(int ac, char **av)
 	char *line = NULL;
 	size_t len = 0;
 	ssize_t nread;
-	char *token;
 	(void)ac;
 
 	while (1)
 	{
-		/* Display prompt only in interactive mode */
 		if (isatty(STDIN_FILENO))
 			write(STDOUT_FILENO, "#cisfun$ ", 9);
 
 		nread = getline(&line, &len, stdin);
-		if (nread == -1) /* Handle End of File (Ctrl+D) */
+		if (nread == -1)
 		{
 			if (isatty(STDIN_FILENO))
 				write(STDOUT_FILENO, "\n", 1);
 			break;
 		}
 
-		/* Tokenize the input to remove spaces, tabs, and newlines */
-		token = strtok(line, " \n\t\r");
+		if (line[nread - 1] == '\n')
+			line[nread - 1] = '\0';
 
-		/* Execute only if the command is not empty */
-		if (token != NULL)
+		if (strlen(line) > 0)
 		{
-			if (strcmp(token, "exit") == 0)
-				break;
-			execute_command(token, av[0]);
+			execute_command(line, av[0]);
 		}
 	}
+
 	free(line);
 	return (0);
 }

@@ -4,7 +4,7 @@
  * main - Entry point for the simple shell
  * @ac: argument count
  * @av: argument vector
- * Return: 0 on success
+ * Return: exit status
  */
 int main(int ac, char **av)
 {
@@ -12,7 +12,7 @@ int main(int ac, char **av)
 	size_t len = 0;
 	ssize_t read_bytes;
 	char *args[64];
-	int status, i;
+	int child_status, i, exit_status = 0;
 	pid_t child;
 
 	(void)ac;
@@ -24,7 +24,7 @@ int main(int ac, char **av)
 		if (read_bytes == -1)
 		{
 			free(line);
-			exit(0);
+			exit(exit_status); /* Exit with the correct error code */
 		}
 		for (i = 0; i < 64; i++)
 			args[i] = NULL;
@@ -41,6 +41,7 @@ int main(int ac, char **av)
 		if (!cmd_path)
 		{
 			fprintf(stderr, "%s: 1: %s: not found\n", av[0], args[0]);
+			exit_status = 127; /* Command not found error code */
 			continue;
 		}
 		child = fork();
@@ -50,10 +51,12 @@ int main(int ac, char **av)
 			perror(av[0]);
 			free(cmd_path);
 			free(line);
-			exit(1);
+			exit(127);
 		}
-		wait(&status);
+		wait(&child_status);
+		if (WIFEXITED(child_status))
+			exit_status = WEXITSTATUS(child_status); /* Update status from child */
 		free(cmd_path);
 	}
-	return (0);
+	return (exit_status);
 }

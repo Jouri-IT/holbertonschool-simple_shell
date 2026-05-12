@@ -23,5 +23,6 @@ typedef struct alias_s
 	char *value;
 	struct alias_s *next;
 } alias_t;
+char *get_path(char *command);
 
 #endif

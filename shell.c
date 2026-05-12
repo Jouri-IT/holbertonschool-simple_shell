@@ -1,34 +1,59 @@
-/* Assuming you have parsed the user input into an array called 'args' */
-char *actual_path;
-pid_t child_pid;
-int status;
+#include "main.h"
 
-if (args[0] == NULL)
-	continue; /* Skip empty lines */
-
-actual_path = get_path(args[0]);
-
-if (actual_path == NULL)
+/**
+ * main - Entry point for the simple shell
+ * @ac: argument count
+ * @av: argument vector
+ * Return: 0 on success
+ */
+int main(int ac, char **av)
 {
-	/* Print the exact error format sh expects */
-	fprintf(stderr, "%s: 1: %s: not found\n", argv[0], args[0]);
-	/* DO NOT FORK HERE */
-}
-else
-{
-	child_pid = fork();
-	if (child_pid == 0)
+	char *line = NULL, *cmd_path;
+	size_t len = 0;
+	ssize_t read_bytes;
+	char *args[64];
+	int status, i;
+	pid_t child;
+
+	(void)ac;
+	while (1)
 	{
-		if (execve(actual_path, args, environ) == -1)
+		if (isatty(STDIN_FILENO))
+			write(STDOUT_FILENO, "($) ", 4);
+		read_bytes = getline(&line, &len, stdin);
+		if (read_bytes == -1)
 		{
-			perror(argv[0]);
-			free(actual_path);
+			free(line);
+			exit(0);
+		}
+		for (i = 0; i < 64; i++)
+			args[i] = NULL;
+		args[0] = strtok(line, " \t\n");
+		if (!args[0])
+			continue;
+		for (i = 1; i < 63; i++)
+		{
+			args[i] = strtok(NULL, " \t\n");
+			if (!args[i])
+				break;
+		}
+		cmd_path = get_path(args[0]);
+		if (!cmd_path)
+		{
+			fprintf(stderr, "%s: 1: %s: not found\n", av[0], args[0]);
+			continue;
+		}
+		child = fork();
+		if (child == 0)
+		{
+			execve(cmd_path, args, environ);
+			perror(av[0]);
+			free(cmd_path);
+			free(line);
 			exit(1);
 		}
-	}
-	else
-	{
 		wait(&status);
-		free(actual_path); /* Free the memory from get_path */
+		free(cmd_path);
 	}
+	return (0);
 }

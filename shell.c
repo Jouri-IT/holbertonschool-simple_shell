@@ -24,13 +24,21 @@ int main(int ac, char **av)
 		if (read_bytes == -1)
 		{
 			free(line);
-			exit(exit_status); /* Exit with the correct error code */
+			exit(exit_status);
 		}
 		for (i = 0; i < 64; i++)
 			args[i] = NULL;
 		args[0] = strtok(line, " \t\n");
 		if (!args[0])
 			continue;
+
+		/* TASK 5: Handle 'exit' built-in */
+		if (strcmp(args[0], "exit") == 0)
+		{
+			free(line);
+			exit(exit_status);
+		}
+
 		for (i = 1; i < 63; i++)
 		{
 			args[i] = strtok(NULL, " \t\n");
@@ -41,7 +49,7 @@ int main(int ac, char **av)
 		if (!cmd_path)
 		{
 			fprintf(stderr, "%s: 1: %s: not found\n", av[0], args[0]);
-			exit_status = 127; /* Command not found error code */
+			exit_status = 127;
 			continue;
 		}
 		child = fork();
@@ -55,7 +63,7 @@ int main(int ac, char **av)
 		}
 		wait(&child_status);
 		if (WIFEXITED(child_status))
-			exit_status = WEXITSTATUS(child_status); /* Update status from child */
+			exit_status = WEXITSTATUS(child_status);
 		free(cmd_path);
 	}
 	return (exit_status);

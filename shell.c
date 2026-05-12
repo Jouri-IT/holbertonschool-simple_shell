@@ -32,11 +32,18 @@ int main(int ac, char **av)
 		if (!args[0])
 			continue;
 
-		/* TASK 5: Handle 'exit' built-in */
+		/* TASK 5: exit built-in */
 		if (strcmp(args[0], "exit") == 0)
 		{
 			free(line);
 			exit(exit_status);
+		}
+		/* TASK 6: env built-in */
+		if (strcmp(args[0], "env") == 0)
+		{
+			for (i = 0; environ[i]; i++)
+				printf("%s\n", environ[i]);
+			continue;
 		}
 
 		for (i = 1; i < 63; i++)

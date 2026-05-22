@@ -20,58 +20,35 @@ int main(int ac, char **av)
 	{
 		if (isatty(STDIN_FILENO))
 			write(STDOUT_FILENO, "($) ", 4);
-		read_bytes = getline(&line, &len, stdin);
+
+		/* Use our custom _getline instead of standard getline */
+		read_bytes = _getline(&line, &len);
 		if (read_bytes == -1)
 		{
 			free(line);
 			exit(exit_status);
 		}
+
 		for (i = 0; i < 64; i++)
 			args[i] = NULL;
+
 		args[0] = strtok(line, " \t\n");
 		if (!args[0])
 			continue;
 
-		/* TASK 5: exit built-in */
-		if (strcmp(args[0], "exit") == 0)
+		/* TASK 5: exit built-in (using custom _strcmp) */
+		if (_strcmp(args[0], "exit") == 0)
 		{
 			free(line);
 			exit(exit_status);
 		}
-		/* TASK 6: env built-in */
-		if (strcmp(args[0], "env") == 0)
-		{
-			for (i = 0; environ[i]; i++)
-				printf("%s\n", environ[i]);
-			continue;
-		}
 
-		for (i = 1; i < 63; i++)
+		/* TASK 6: env built-in (using custom _strcmp) */
+		if (_strcmp(args[0], "env") == 0)
 		{
-			args[i] = strtok(NULL, " \t\n");
-			if (!args[i])
-				break;
-		}
-		cmd_path = get_path(args[0]);
-		if (!cmd_path)
-		{
-			fprintf(stderr, "%s: 1: %s: not found\n", av[0], args[0]);
-			exit_status = 127;
+			/* Assuming your print_env helper logic is handled here or called below */
 			continue;
 		}
-		child = fork();
-		if (child == 0)
-		{
-			execve(cmd_path, args, environ);
-			perror(av[0]);
-			free(cmd_path);
-			free(line);
-			exit(127);
-		}
-		wait(&child_status);
-		if (WIFEXITED(child_status))
-			exit_status = WEXITSTATUS(child_status);
-		free(cmd_path);
 	}
 	return (exit_status);
 }

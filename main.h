@@ -21,5 +21,6 @@ char *_strdup(char *str);
 char *_memcpy(char *dest, char *src, size_t n);
 char *_strtok(char *str, const char *delim);
 int _atoi(const char *s);
+int _is_valid_exit(const char *s);
 
 #endif

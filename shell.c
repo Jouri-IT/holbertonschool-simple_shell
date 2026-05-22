@@ -47,7 +47,17 @@ int main(int ac, char **av)
 		if (_strcmp(args[0], "exit") == 0)
 		{
 			if (args[1])
+			{
+				if (!_is_valid_exit(args[1]))
+				{
+					fprintf(stderr,
+						"%s: 1: exit: Illegal number: %s\n",
+						av[0], args[1]);
+					exit_status = 2;
+					continue;
+				}
 				exit_status = _atoi(args[1]);
+			}
 			free(line);
 			exit(exit_status);
 		}

@@ -168,3 +168,22 @@ int _atoi(const char *s)
 
 	return (sign * result);
 }
+
+/**
+ * _is_valid_exit - Checks if a string is a valid non-negative integer.
+ * @s: The string to check
+ * Return: 1 if valid, 0 if not
+ */
+int _is_valid_exit(const char *s)
+{
+	if (!s || !*s)
+		return (0);
+
+	while (*s)
+	{
+		if (*s < '0' || *s > '9')
+			return (0);
+		s++;
+	}
+	return (1);
+}

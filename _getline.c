@@ -72,4 +72,3 @@ ssize_t _getline(char **lineptr, size_t *n)
 	(*lineptr)[line_pos] = '\0';
 	return (line_pos);
 }
-}

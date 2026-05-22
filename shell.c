@@ -74,6 +74,41 @@ int main(int ac, char **av)
 			continue;
 		}
 
+		if (_strcmp(args[0], "setenv") == 0)
+		{
+			if (!args[1])
+			{
+				fprintf(stderr,
+					"%s: setenv: Usage: setenv VARIABLE VALUE\n",
+					av[0]);
+				exit_status = 0;
+				continue;
+			}
+			if (_setenv(args[1], args[2] ? args[2] : "") != 0)
+			{
+				fprintf(stderr,
+					"%s: setenv: failed to set %s\n",
+					av[0], args[1]);
+			}
+			exit_status = 0;
+			continue;
+		}
+
+		if (_strcmp(args[0], "unsetenv") == 0)
+		{
+			if (!args[1])
+			{
+				fprintf(stderr,
+					"%s: unsetenv: Usage: unsetenv VARIABLE\n",
+					av[0]);
+				exit_status = 0;
+				continue;
+			}
+			_unsetenv(args[1]);
+			exit_status = 0;
+			continue;
+		}
+
 		cmd_path = get_path(args[0]);
 		if (!cmd_path)
 		{

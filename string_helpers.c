@@ -76,3 +76,65 @@ char *_memcpy(char *dest, char *src, size_t n)
 		dest[i] = src[i];
 	return (dest);
 }
+
+/**
+ * _strtok - Splits a string into tokens using delimiter characters.
+ * @str: String to tokenize, or NULL to continue previous string
+ * @delim: String of delimiter characters
+ * Return: Pointer to next token, or NULL if no more tokens
+ */
+char *_strtok(char *str, const char *delim)
+{
+	static char *saved;
+	char *token_start;
+	int is_delim, i;
+
+	if (str != NULL)
+		saved = str;
+
+	if (saved == NULL || *saved == '\0')
+		return (NULL);
+
+	while (*saved)
+	{
+		is_delim = 0;
+		for (i = 0; delim[i]; i++)
+		{
+			if (*saved == delim[i])
+			{
+				is_delim = 1;
+				break;
+			}
+		}
+		if (!is_delim)
+			break;
+		saved++;
+	}
+
+	if (*saved == '\0')
+		return (NULL);
+
+	token_start = saved;
+
+	while (*saved)
+	{
+		is_delim = 0;
+		for (i = 0; delim[i]; i++)
+		{
+			if (*saved == delim[i])
+			{
+				is_delim = 1;
+				break;
+			}
+		}
+		if (is_delim)
+		{
+			*saved = '\0';
+			saved++;
+			break;
+		}
+		saved++;
+	}
+
+	return (token_start);
+}

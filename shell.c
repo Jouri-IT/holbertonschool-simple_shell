@@ -33,7 +33,7 @@ int main(int ac, char **av)
 		for (i = 0; i < 64; i++)
 			args[i] = NULL;
 
-		args[0] = strtok(line, " \t\n");
+		args[0] = _strtok(line, " \t\n");
 		if (!args[0])
 			continue;
 
@@ -56,7 +56,7 @@ int main(int ac, char **av)
 
 		for (i = 1; i < 63; i++)
 		{
-			args[i] = strtok(NULL, " \t\n");
+			args[i] = _strtok(NULL, " \t\n");
 			if (!args[i])
 				break;
 		}

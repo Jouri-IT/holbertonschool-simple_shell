@@ -66,7 +66,7 @@ char *get_path(char *command)
 	if (!path_copy)
 		return (NULL);
 
-	token = strtok(path_copy, ":");
+	token = _strtok(path_copy, ":");
 	while (token)
 	{
 		file_path = build_path(token, command);
@@ -76,7 +76,7 @@ char *get_path(char *command)
 			return (file_path);
 		}
 		free(file_path);
-		token = strtok(NULL, ":");
+		token = _strtok(NULL, ":");
 	}
 	free(path_copy);
 	return (NULL);

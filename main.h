@@ -18,5 +18,6 @@ ssize_t _getline(char **lineptr, size_t *n);
 int _strcmp(char *s1, char *s2);
 char *_strchr(char *s, char c);
 char *_strdup(char *str);
+char *_memcpy(char *dest, char *src, size_t n);
 
 #endif

@@ -11,12 +11,9 @@
 
 extern char **environ;
 
-/* Existing function prototypes */
-char *_getenv(const char *name);
 char *build_path(char *dir, char *cmd);
 char *get_path(char *command);
-
-/* ADD THESE: Custom replacement prototypes to pass the checker */
+char *_getenv(const char *name);
 ssize_t _getline(char **lineptr, size_t *n);
 int _strcmp(char *s1, char *s2);
 char *_strchr(char *s, char c);

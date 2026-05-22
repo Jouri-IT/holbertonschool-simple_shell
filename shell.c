@@ -76,7 +76,7 @@ int main(int ac, char **av)
 
 		if (_strcmp(args[0], "setenv") == 0)
 		{
-			if (!args[1])
+			if (!args[1] || !args[2])
 			{
 				fprintf(stderr,
 					"%s: setenv: Usage: setenv VARIABLE VALUE\n",
@@ -84,12 +84,10 @@ int main(int ac, char **av)
 				exit_status = 0;
 				continue;
 			}
-			if (_setenv(args[1], args[2] ? args[2] : "") != 0)
-			{
+			if (_setenv(args[1], args[2]) != 0)
 				fprintf(stderr,
 					"%s: setenv: failed to set %s\n",
 					av[0], args[1]);
-			}
 			exit_status = 0;
 			continue;
 		}

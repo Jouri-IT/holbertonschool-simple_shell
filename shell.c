@@ -18,6 +18,7 @@ int main(int ac, char **av)
 	char *cmd_path;
 
 	(void)ac;
+	signal(SIGINT, SIG_IGN);
 	while (1)
 	{
 		if (isatty(STDIN_FILENO))

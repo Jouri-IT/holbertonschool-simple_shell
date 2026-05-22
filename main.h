@@ -20,5 +20,6 @@ char *_strchr(char *s, char c);
 char *_strdup(char *str);
 char *_memcpy(char *dest, char *src, size_t n);
 char *_strtok(char *str, const char *delim);
+int _atoi(const char *s);
 
 #endif

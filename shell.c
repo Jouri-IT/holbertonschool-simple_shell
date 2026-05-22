@@ -37,8 +37,17 @@ int main(int ac, char **av)
 		if (!args[0])
 			continue;
 
+		for (i = 1; i < 63; i++)
+		{
+			args[i] = _strtok(NULL, " \t\n");
+			if (!args[i])
+				break;
+		}
+
 		if (_strcmp(args[0], "exit") == 0)
 		{
+			if (args[1])
+				exit_status = _atoi(args[1]);
 			free(line);
 			exit(exit_status);
 		}
@@ -52,13 +61,6 @@ int main(int ac, char **av)
 				write(STDOUT_FILENO, "\n", 1);
 			}
 			continue;
-		}
-
-		for (i = 1; i < 63; i++)
-		{
-			args[i] = _strtok(NULL, " \t\n");
-			if (!args[i])
-				break;
 		}
 
 		cmd_path = get_path(args[0]);

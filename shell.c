@@ -14,9 +14,11 @@ int shell_loop(int fd, char **av)
 	char *args[64];
 	int i, exit_status = 0;
 	pid_t child;
+	pid_t shell_pid;
 	int child_status;
 	char *cmd_path;
 
+	shell_pid = getpid();
 	signal(SIGINT, SIG_IGN);
 	while (1)
 	{
@@ -43,6 +45,9 @@ int shell_loop(int fd, char **av)
 			if (!args[i])
 				break;
 		}
+
+		for (i = 0; args[i]; i++)
+			args[i] = expand_vars(args[i], exit_status, shell_pid);
 
 		if (_strcmp(args[0], "exit") == 0)
 		{

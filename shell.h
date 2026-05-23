@@ -31,6 +31,7 @@ char *_strtok(char *str, const char *delim);
 char *_strcpy(char *dest, const char *src);
 int _atoi(const char *s);
 int _is_valid_exit(const char *s);
+char *expand_vars(char *token, int exit_status, pid_t pid);
 ssize_t _getline(char **lineptr, size_t *n, int fd);
 
 #endif /* SHELL_H */

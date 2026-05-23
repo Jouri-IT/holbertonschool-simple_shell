@@ -40,7 +40,7 @@ int builtin_cd(char **args, char **env)
 			write(STDERR_FILENO, "cd: OLDPWD not set\n", 19);
 			return (1);
 		}
-		write(STDOUT_FILENO, dir, _strlen(dir));
+		write(STDOUT_FILENO, dir, strlen(dir));
 		write(STDOUT_FILENO, "\n", 1);
 	}
 	else

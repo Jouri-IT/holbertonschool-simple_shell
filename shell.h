@@ -14,7 +14,7 @@
 
 extern char **environ;
 
-char *read_from_file(int fd);
+int shell_loop(int fd, char **av);
 char *build_path(char *dir, char *cmd);
 char *get_path(char *command);
 char *_getenv(const char *name);

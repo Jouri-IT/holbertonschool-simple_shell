@@ -1,12 +1,12 @@
-#include "main.h"
+#include "shell.h"
 
 /**
- * main - Entry point for the simple shell
- * @ac: argument count
- * @av: argument vector
+ * shell_loop - Main loop of the simple shell
+ * @fd: file descriptor to read from (stdin or file)
+ * @av: argument vector from main
  * Return: exit status
  */
-int main(int ac, char **av)
+int shell_loop(int fd, char **av)
 {
 	char *line = NULL;
 	size_t len = 0;
@@ -17,18 +17,17 @@ int main(int ac, char **av)
 	int child_status;
 	char *cmd_path;
 
-	(void)ac;
 	signal(SIGINT, SIG_IGN);
 	while (1)
 	{
-		if (isatty(STDIN_FILENO))
+		if (isatty(fd))
 			write(STDOUT_FILENO, "($) ", 4);
 
 		read_bytes = _getline(&line, &len);
 		if (read_bytes == -1)
 		{
 			free(line);
-			exit(exit_status);
+			return (exit_status);
 		}
 
 		for (i = 0; i < 64; i++)
@@ -68,7 +67,7 @@ int main(int ac, char **av)
 			for (i = 0; environ[i]; i++)
 			{
 				write(STDOUT_FILENO, environ[i],
-					strlen(environ[i]));
+					_strlen(environ[i]));
 				write(STDOUT_FILENO, "\n", 1);
 			}
 			continue;
@@ -104,6 +103,12 @@ int main(int ac, char **av)
 			}
 			_unsetenv(args[1]);
 			exit_status = 0;
+			continue;
+		}
+
+		if (_strcmp(args[0], "cd") == 0)
+		{
+			exit_status = builtin_cd(args, environ);
 			continue;
 		}
 

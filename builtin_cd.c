@@ -11,13 +11,11 @@ int builtin_cd(char **args, char **env)
 {
 	char *dir = NULL;
 	char cwd[1024];
-	char *oldpwd = NULL;
-	int i;
+	char oldpwd[1024];
 
 	(void)env;
 
-	oldpwd = getcwd(cwd, sizeof(cwd));
-	if (oldpwd == NULL)
+	if (getcwd(oldpwd, sizeof(oldpwd)) == NULL)
 	{
 		perror("getcwd");
 		return (1);
@@ -59,6 +57,5 @@ int builtin_cd(char **args, char **env)
 	if (getcwd(cwd, sizeof(cwd)) != NULL)
 		_setenv("PWD", cwd);
 
-	(void)i;
 	return (0);
 }

@@ -31,6 +31,6 @@ char *_strtok(char *str, const char *delim);
 char *_strcpy(char *dest, const char *src);
 int _atoi(const char *s);
 int _is_valid_exit(const char *s);
-ssize_t _getline(char **lineptr, size_t *n);
+ssize_t _getline(char **lineptr, size_t *n, int fd);
 
 #endif /* SHELL_H */

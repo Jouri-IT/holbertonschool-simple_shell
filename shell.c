@@ -2,8 +2,8 @@
 
 /**
  * shell_loop - Main loop of the simple shell
- * @fd: file descriptor to read from (stdin or file)
- * @av: argument vector from main
+ * @fd: file descriptor to read from
+ * @av: argument vector
  * Return: exit status
  */
 int shell_loop(int fd, char **av)
@@ -23,7 +23,7 @@ int shell_loop(int fd, char **av)
 		if (isatty(fd))
 			write(STDOUT_FILENO, "($) ", 4);
 
-		read_bytes = _getline(&line, &len);
+		read_bytes = _getline(&line, &len, fd);
 		if (read_bytes == -1)
 		{
 			free(line);

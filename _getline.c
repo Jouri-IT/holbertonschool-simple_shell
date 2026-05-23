@@ -1,18 +1,20 @@
-#include "main.h"
+#include "shell.h"
 
 #define BUFFER_SIZE 1024
 
 /**
- * _getline - Reads a line from stdin using a static buffer.
+ * _getline - Reads a line from a file descriptor using a static buffer.
  * @lineptr: Address of pointer to output buffer.
  * @n: Address of allocated size of *lineptr.
+ * @fd: File descriptor to read from.
  * Return: Number of characters read, or -1 on EOF/error.
  */
-ssize_t _getline(char **lineptr, size_t *n)
+ssize_t _getline(char **lineptr, size_t *n, int fd)
 {
 	static char buffer[BUFFER_SIZE];
-	static size_t buffer_pos;
-	static size_t buffer_len;
+	static int buffer_pos;
+	static int buffer_len;
+	static int last_fd = -1;
 	size_t line_pos = 0;
 	char c;
 	char *new_ptr;
@@ -20,6 +22,13 @@ ssize_t _getline(char **lineptr, size_t *n)
 
 	if (lineptr == NULL || n == NULL)
 		return (-1);
+
+	if (last_fd != fd)
+	{
+		buffer_pos = 0;
+		buffer_len = 0;
+		last_fd = fd;
+	}
 
 	if (*lineptr == NULL || *n == 0)
 	{
@@ -33,7 +42,7 @@ ssize_t _getline(char **lineptr, size_t *n)
 	{
 		if (buffer_pos >= buffer_len)
 		{
-			buffer_len = read(STDIN_FILENO, buffer, BUFFER_SIZE);
+			buffer_len = read(fd, buffer, BUFFER_SIZE);
 			buffer_pos = 0;
 			if (buffer_len <= 0)
 			{

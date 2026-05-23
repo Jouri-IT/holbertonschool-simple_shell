@@ -108,7 +108,7 @@ int shell_loop(int fd, char **av)
 
 		if (_strcmp(args[0], "cd") == 0)
 		{
-			exit_status = builtin_cd(args, environ);
+			exit_status = builtin_cd(args, environ, av[0]);
 			continue;
 		}
 

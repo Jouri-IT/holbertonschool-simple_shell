@@ -20,7 +20,7 @@ char *get_path(char *command);
 char *_getenv(const char *name);
 int _setenv(const char *name, const char *value);
 int _unsetenv(const char *name);
-int builtin_cd(char **args, char **env);
+int builtin_cd(char **args, char **env, char *shell_name);
 int _strlen(const char *s);
 int _strcmp(char *s1, char *s2);
 int _strncmp(const char *s1, const char *s2, size_t n);

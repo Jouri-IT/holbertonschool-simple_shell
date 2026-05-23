@@ -4,10 +4,11 @@
  * builtin_cd - changes the current directory of the process
  * @args: array of arguments (args[0] = "cd", args[1] = directory)
  * @env: pointer to the environment
+ * @shell_name: name of the shell (argv[0])
  *
  * Return: 0 on success, 1 on failure
  */
-int builtin_cd(char **args, char **env)
+int builtin_cd(char **args, char **env, char *shell_name)
 {
 	char *dir = NULL;
 	char cwd[1024];
@@ -26,7 +27,7 @@ int builtin_cd(char **args, char **env)
 		dir = _getenv("HOME");
 		if (dir == NULL)
 		{
-			write(STDERR_FILENO, "cd: HOME not set\n", 17);
+			fprintf(stderr, "%s: 1: cd: HOME not set\n", shell_name);
 			return (1);
 		}
 	}
@@ -35,7 +36,8 @@ int builtin_cd(char **args, char **env)
 		dir = _getenv("OLDPWD");
 		if (dir == NULL)
 		{
-			write(STDERR_FILENO, "cd: OLDPWD not set\n", 19);
+			fprintf(stderr, "%s: 1: cd: OLDPWD not set\n",
+				shell_name);
 			return (1);
 		}
 		write(STDOUT_FILENO, dir, strlen(dir));
@@ -48,7 +50,8 @@ int builtin_cd(char **args, char **env)
 
 	if (chdir(dir) == -1)
 	{
-		perror("cd");
+		fprintf(stderr, "%s: 1: cd: can't cd to %s\n",
+			shell_name, dir);
 		return (1);
 	}
 

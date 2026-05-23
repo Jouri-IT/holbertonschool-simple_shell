@@ -1,4 +1,4 @@
-#include "main.h"
+#include "shell.h"
 
 static char **custom_env;
 

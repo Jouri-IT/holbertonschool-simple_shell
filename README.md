@@ -1,6 +1,6 @@
 # simple shell
 
-a simple unix command line interpreter written in c, built as part of the holberton school curriculum by aseel alzhrani and jouri alsulaiman.
+a simple unix command line interpreter written in c, built as part of the holberton school curriculum.
 
 ---
 

@@ -1,82 +1,93 @@
-# Simple Shell
+# simple shell
 
-A simple UNIX command line interpreter written in C, built as part of the Holberton School curriculum by Aseel Alzhrani and Jouri Alsulaiman.
+a simple unix command line interpreter written in c, built as part of the holberton school curriculum by aseel alzhrani and jouri alsulaiman.
 
-## Description
+---
 
-`hsh` is a custom shell that replicates the core behavior of `/bin/sh`. It reads commands from standard input, resolves them using the PATH environment variable, and executes them via `fork` and `execve`. It supports both interactive and non-interactive modes.
+## description
 
-## Compilation
+`hsh` is a custom shell that replicates the core behavior of `/bin/sh`. it reads commands from standard input, resolves them using the path environment variable, and executes them via `fork` and `execve`. it supports both interactive and non-interactive modes.
 
-```bash
-gcc -Wall -Werror -Wextra -pedantic -std=gnu89 *.c -o hsh
-```
+---
 
-## Usage
+## compilation
 
-### Interactive mode
+gcc -wall -werror -wextra -pedantic -std=gnu89 *.c -o hsh
 
-```bash
-$ ./hsh
-($) /bin/ls
-hsh main.c shell.c
-($) exit
+---
+
+## usage
+
+### interactive mode
+
+$ ./hsh  
+($) /bin/ls  
+hsh main.c shell.c  
+($) exit  
 $
-```
 
-### Non-interactive mode
+### non-interactive mode
 
-```bash
-$ echo "/bin/ls" | ./hsh
-hsh main.c shell.c
-```
+$ echo "/bin/ls" | ./hsh  
+hsh main.c shell.c  
 
-## Built-in Commands
+---
 
-| Command | Description |
+## built-in commands
+
+| command | description |
 |---------|-------------|
-| `exit` | Exit the shell with the last command's exit status |
-| `env` | Print all current environment variables |
+| exit | exit the shell with the last command's exit status |
+| env | print all current environment variables |
 
-## How It Works
+---
 
-1. Prints a `($) ` prompt in interactive mode
-2. Reads a line of input using `getline`
-3. Tokenizes the input into command and arguments using `strtok`
-4. Resolves the command's full path by searching directories in `PATH`
-5. Forks a child process and executes the command with `execve`
-6. Waits for the child to finish and stores the exit status
-7. Repeats until `exit` or EOF (Ctrl+D)
+## how it works
 
-## Files
+1. prints a ($) prompt in interactive mode  
+2. reads input using getline  
+3. tokenizes input using strtok  
+4. resolves command path using path environment variable  
+5. forks a child process  
+6. executes command using execve  
+7. waits for process to finish and stores exit status  
+8. repeats until exit or ctrl+d  
 
-| File | Description |
+---
+
+## files
+
+| file | description |
 |------|-------------|
-| `shell.c` | Main shell loop, built-ins, and command execution |
-| `_getenv.c` | Custom `getenv` — searches `environ` for a variable by name |
-| `path_handler.c` | Resolves full command path by searching PATH directories |
-| `main.h` | Header file with function prototypes and includes |
-| `man_1_simple_shell` | Manual page for hsh |
-| `AUTHORS` | List of project contributors |
+| shell.c | main shell loop, built-ins, and execution logic |
+| _getenv.c | custom getenv implementation |
+| path_handler.c | resolves command paths using path variable |
+| main.h | header file with function prototypes |
+| man_1_simple_shell | manual page for hsh |
+| authors | project contributors list |
 
-## Error Handling
+---
 
-Errors match `/bin/sh` format:
+## error handling
 
-```bash
-$ echo "qwerty" | ./hsh
-./hsh: 1: qwerty: not found
-```
+errors match /bin/sh format:
 
-## Requirements
+$ echo "qwerty" | ./hsh  
+./hsh: 1: qwerty: not found  
 
-- Ubuntu 20.04 LTS
-- gcc with flags: `-Wall -Werror -Wextra -pedantic -std=gnu89`
-- Betty style compliant
-- No memory leaks
-- No more than 5 functions per file
+---
 
-## Authors
+## requirements
 
-- Aseel Alzhrani
-- Jouri Alsulaiman
+- ubuntu 20.04 lts  
+- gcc with flags: -wall -werror -wextra -pedantic -std=gnu89  
+- betty style compliant  
+- no memory leaks  
+- no more than 5 functions per file  
+
+---
+
+## authors
+
+- aseel alzhrani  
+- jouri alsulaiman  
